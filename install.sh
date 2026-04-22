@@ -4,17 +4,14 @@
 #   Nuanet | zentra.nuanet.com.mx
 #
 #   Uso:
-#   curl -fsSL https://raw.githubusercontent.com/nuanet/zentra-agent/main/install.sh | sudo bash
+#   curl -fsSL https://raw.githubusercontent.com/alejandro-delatorre/zentra-agent/main/install.sh | sudo bash
 # ============================================================
 
 set -e
 
-# ---------- Configuración ----------
-GITHUB_TOKEN="ghp_REEMPLAZA_CON_TU_PAT"
-GITHUB_OWNER="nuanet"
+GITHUB_OWNER="alejandro-delatorre"
 GITHUB_REPO="zentra-agent"
-PACKAGE_NAME="zentra-agent_7.0.3_amd64.deb"
-# -----------------------------------
+PACKAGE_NAME="zentra-agent_7.0.25_amd64.deb"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -55,7 +52,6 @@ check_os() {
     if [ -f /etc/os-release ]; then
         . /etc/os-release
         echo -e "${GREEN}[OK]${NC} Sistema: $PRETTY_NAME"
-        # Verificar que sea Debian/Ubuntu
         if [[ "$ID" != "ubuntu" && "$ID" != "debian" && "$ID_LIKE" != *"debian"* ]]; then
             echo -e "${YELLOW}[WARN]${NC} Este instalador está optimizado para Ubuntu/Debian."
             echo "        En otros sistemas puede requerir pasos adicionales."
@@ -66,31 +62,13 @@ check_os() {
 download_package() {
     echo ""
     echo -e "${CYAN}[1/3]${NC} Descargando Zentra Agent..."
-
     TMP_DEB=$(mktemp /tmp/zentra-agent-XXXXXX.deb)
-
-    # Obtener la URL del asset desde la API de GitHub
-    ASSET_URL=$(curl -sf \
-        -H "Authorization: token ${GITHUB_TOKEN}" \
-        -H "Accept: application/vnd.github.v3+json" \
-        "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest" \
-        | grep "browser_download_url" \
-        | grep "${PACKAGE_NAME}" \
-        | cut -d '"' -f 4)
-
-    if [ -z "$ASSET_URL" ]; then
-        echo -e "${RED}[ERROR]${NC} No se pudo obtener la URL de descarga."
-        echo "        Verifica que el token PAT sea válido y el release exista."
+    DOWNLOAD_URL="https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest/download/${PACKAGE_NAME}"
+    curl -fL "$DOWNLOAD_URL" -o "$TMP_DEB"
+    if [ ! -s "$TMP_DEB" ]; then
+        echo -e "${RED}[ERROR]${NC} La descarga falló o el archivo está vacío."
         exit 1
     fi
-
-    # Descargar el .deb con autenticación
-    curl -fL \
-        -H "Authorization: token ${GITHUB_TOKEN}" \
-        -H "Accept: application/octet-stream" \
-        "$ASSET_URL" \
-        -o "$TMP_DEB"
-
     echo -e "${GREEN}[OK]${NC} Descarga completa."
     echo "$TMP_DEB"
 }
@@ -108,7 +86,6 @@ verify_service() {
     echo ""
     echo -e "${CYAN}[3/3]${NC} Verificando servicio..."
     sleep 2
-
     if systemctl is-active --quiet zentra-agent; then
         echo -e "${GREEN}[OK]${NC} zentra-agent está corriendo."
     else
@@ -118,7 +95,6 @@ verify_service() {
     fi
 }
 
-# ---------- Main ----------
 banner
 check_root
 check_arch
