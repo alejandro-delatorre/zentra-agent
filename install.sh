@@ -12,6 +12,7 @@ set -e
 GITHUB_OWNER="alejandro-delatorre"
 GITHUB_REPO="zentra-agent"
 PACKAGE_NAME="zentra-agent_7.0.25_amd64.deb"
+TMP_DEB="/tmp/zentra-agent-install.deb"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -32,7 +33,8 @@ banner() {
 
 check_root() {
     if [ "$EUID" -ne 0 ]; then
-        echo -e "${RED}[ERROR]${NC} Este script requiere permisos de root." >&2
+        echo -e "${RED}[ERROR]${NC} Este script requiere permisos de root."
+        echo "        Ejecuta con: sudo bash install.sh"
         exit 1
     fi
 }
@@ -40,7 +42,7 @@ check_root() {
 check_arch() {
     ARCH=$(uname -m)
     if [ "$ARCH" != "x86_64" ]; then
-        echo -e "${RED}[ERROR]${NC} Arquitectura no soportada: $ARCH" >&2
+        echo -e "${RED}[ERROR]${NC} Arquitectura no soportada: $ARCH"
         exit 1
     fi
     echo -e "${GREEN}[OK]${NC} Arquitectura: $ARCH"
@@ -57,23 +59,20 @@ check_os() {
 }
 
 download_package() {
-    echo -e "${CYAN}[1/3]${NC} Descargando Zentra Agent..." >&2
-    TMP_DEB=$(mktemp /tmp/zentra-agent-XXXXXX.deb)
+    echo -e "${CYAN}[1/3]${NC} Descargando Zentra Agent..."
     DOWNLOAD_URL="https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest/download/${PACKAGE_NAME}"
-    curl -fL "$DOWNLOAD_URL" -o "$TMP_DEB" >&2
+    curl -fL "$DOWNLOAD_URL" -o "$TMP_DEB"
     if [ ! -s "$TMP_DEB" ]; then
-        echo -e "${RED}[ERROR]${NC} La descarga falló o el archivo está vacío." >&2
+        echo -e "${RED}[ERROR]${NC} La descarga falló o el archivo está vacío."
         exit 1
     fi
-    echo -e "${GREEN}[OK]${NC} Descarga completa." >&2
-    echo "$TMP_DEB"
+    echo -e "${GREEN}[OK]${NC} Descarga completa."
 }
 
 install_package() {
-    local DEB_PATH="$1"
     echo -e "${CYAN}[2/3]${NC} Instalando paquete..."
-    dpkg -i "$DEB_PATH"
-    rm -f "$DEB_PATH"
+    dpkg -i "$TMP_DEB"
+    rm -f "$TMP_DEB"
     echo -e "${GREEN}[OK]${NC} Paquete instalado."
 }
 
@@ -93,9 +92,8 @@ banner
 check_root
 check_arch
 check_os
-
-TMP_DEB=$(download_package)
-install_package "$TMP_DEB"
+download_package
+install_package
 verify_service
 
 echo ""
