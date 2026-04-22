@@ -30,19 +30,22 @@ if [ "$ARCH" != "x86_64" ]; then
 fi
 echo -e "${GREEN}[OK]${NC} Arquitectura: $ARCH"
 
-if [ -f /etc/os-release ]; then
-    . /etc/os-release
-    echo -e "${GREEN}[OK]${NC} Sistema: $PRETTY_NAME"
-else
+if [ ! -f /etc/os-release ]; then
     echo -e "${RED}[ERROR]${NC} No se pudo detectar el sistema operativo."; exit 1
 fi
 
-if [[ "$VERSION_ID" == "22.04" ]]; then
+. /etc/os-release
+echo -e "${GREEN}[OK]${NC} Sistema: $PRETTY_NAME"
+
+# Extraer solo major.minor (22.04, 24.04)
+OS_VERSION=$(echo "$VERSION_ID" | cut -d'.' -f1,2)
+
+if [[ "$OS_VERSION" == "22.04" ]]; then
     PACKAGE_NAME="zentra-agent_${VERSION}_ubuntu22_amd64.deb"
-elif [[ "$VERSION_ID" == "24.04" ]]; then
+elif [[ "$OS_VERSION" == "24.04" ]]; then
     PACKAGE_NAME="zentra-agent_${VERSION}_amd64.deb"
 else
-    echo -e "${YELLOW}[WARN]${NC} Ubuntu $VERSION_ID no probado, usando paquete 22.04..."
+    echo -e "${YELLOW}[WARN]${NC} Ubuntu $OS_VERSION no probado, usando paquete 22.04..."
     PACKAGE_NAME="zentra-agent_${VERSION}_ubuntu22_amd64.deb"
 fi
 
