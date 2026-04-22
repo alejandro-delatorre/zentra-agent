@@ -3,7 +3,7 @@ set -e
 
 GITHUB_OWNER="alejandro-delatorre"
 GITHUB_REPO="zentra-agent"
-VERSION="7.0.25"
+ZENTRA_VERSION="7.0.25"
 TMP_DEB="/tmp/zentra-agent-install.deb"
 
 RED='\033[0;31m'
@@ -41,12 +41,12 @@ echo -e "${GREEN}[OK]${NC} Sistema: $PRETTY_NAME"
 OS_VERSION=$(echo "$VERSION_ID" | cut -d'.' -f1,2)
 
 if [[ "$OS_VERSION" == "22.04" ]]; then
-    PACKAGE_NAME="zentra-agent_${VERSION}_ubuntu22_amd64.deb"
+    PACKAGE_NAME="zentra-agent_${ZENTRA_VERSION}_ubuntu22_amd64.deb"
 elif [[ "$OS_VERSION" == "24.04" ]]; then
-    PACKAGE_NAME="zentra-agent_${VERSION}_amd64.deb"
+    PACKAGE_NAME="zentra-agent_${ZENTRA_VERSION}_amd64.deb"
 else
     echo -e "${YELLOW}[WARN]${NC} Ubuntu $OS_VERSION no probado, usando paquete 22.04..."
-    PACKAGE_NAME="zentra-agent_${VERSION}_ubuntu22_amd64.deb"
+    PACKAGE_NAME="zentra-agent_${ZENTRA_VERSION}_ubuntu22_amd64.deb"
 fi
 
 echo -e "${GREEN}[OK]${NC} Paquete: $PACKAGE_NAME"
