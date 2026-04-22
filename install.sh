@@ -32,8 +32,7 @@ banner() {
 
 check_root() {
     if [ "$EUID" -ne 0 ]; then
-        echo -e "${RED}[ERROR]${NC} Este script requiere permisos de root."
-        echo "        Ejecuta con: sudo bash install.sh"
+        echo -e "${RED}[ERROR]${NC} Este script requiere permisos de root." >&2
         exit 1
     fi
 }
@@ -41,8 +40,7 @@ check_root() {
 check_arch() {
     ARCH=$(uname -m)
     if [ "$ARCH" != "x86_64" ]; then
-        echo -e "${RED}[ERROR]${NC} Arquitectura no soportada: $ARCH"
-        echo "        Zentra Agent solo soporta x86_64 (amd64)."
+        echo -e "${RED}[ERROR]${NC} Arquitectura no soportada: $ARCH" >&2
         exit 1
     fi
     echo -e "${GREEN}[OK]${NC} Arquitectura: $ARCH"
@@ -54,28 +52,25 @@ check_os() {
         echo -e "${GREEN}[OK]${NC} Sistema: $PRETTY_NAME"
         if [[ "$ID" != "ubuntu" && "$ID" != "debian" && "$ID_LIKE" != *"debian"* ]]; then
             echo -e "${YELLOW}[WARN]${NC} Este instalador está optimizado para Ubuntu/Debian."
-            echo "        En otros sistemas puede requerir pasos adicionales."
         fi
     fi
 }
 
 download_package() {
-    echo ""
-    echo -e "${CYAN}[1/3]${NC} Descargando Zentra Agent..."
+    echo -e "${CYAN}[1/3]${NC} Descargando Zentra Agent..." >&2
     TMP_DEB=$(mktemp /tmp/zentra-agent-XXXXXX.deb)
     DOWNLOAD_URL="https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest/download/${PACKAGE_NAME}"
-    curl -fL "$DOWNLOAD_URL" -o "$TMP_DEB"
+    curl -fL "$DOWNLOAD_URL" -o "$TMP_DEB" >&2
     if [ ! -s "$TMP_DEB" ]; then
-        echo -e "${RED}[ERROR]${NC} La descarga falló o el archivo está vacío."
+        echo -e "${RED}[ERROR]${NC} La descarga falló o el archivo está vacío." >&2
         exit 1
     fi
-    echo -e "${GREEN}[OK]${NC} Descarga completa."
+    echo -e "${GREEN}[OK]${NC} Descarga completa." >&2
     echo "$TMP_DEB"
 }
 
 install_package() {
     local DEB_PATH="$1"
-    echo ""
     echo -e "${CYAN}[2/3]${NC} Instalando paquete..."
     dpkg -i "$DEB_PATH"
     rm -f "$DEB_PATH"
@@ -83,7 +78,6 @@ install_package() {
 }
 
 verify_service() {
-    echo ""
     echo -e "${CYAN}[3/3]${NC} Verificando servicio..."
     sleep 2
     if systemctl is-active --quiet zentra-agent; then
